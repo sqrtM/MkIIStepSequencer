@@ -1,5 +1,7 @@
 package org.mpike.mkii;
 
+import org.mpike.Messenger;
+
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Receiver;
@@ -35,6 +37,7 @@ public class MkII {
 
     private MkII() throws MidiUnavailableException {
         DeviceInitializer deviceInitializer = new DeviceInitializer();
+        Messenger messenger = Messenger.getMessenger();
 
         // get list of all midi ports
         MidiDevice.Info[] allMidiDeviceInfo = deviceInitializer.findMidiDevices();
@@ -49,7 +52,12 @@ public class MkII {
         deviceInitializer.openMidiDevice(selectedMidiOut);
         TRANSMITTER = deviceInitializer.openDeviceTransmitter(selectedMidiOut);
 
-        System.out.println("Ports configured. Initializing sequencer...");
+        //FINALLY, select the external receiver...
+        MidiDevice externalMidiIn = deviceInitializer.selectExternalReceiver(allMidiDeviceInfo);
+        deviceInitializer.openMidiDevice(externalMidiIn);
+        messenger.setReceiver(deviceInitializer.openDeviceReceiver(externalMidiIn));
+
+        System.out.println("all ports configured! Initializing sequencer...");
     }
 
     public static MkII getPhysicalController() {

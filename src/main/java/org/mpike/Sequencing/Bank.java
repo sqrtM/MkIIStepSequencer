@@ -1,5 +1,6 @@
 package org.mpike.Sequencing;
 
+import org.mpike.Messenger;
 import org.mpike.mkii.Color;
 import org.mpike.mkii.MkII;
 
@@ -12,6 +13,7 @@ public class Bank extends Thread {
     private final int bankId;
     private final int bankLength;
     private final Sequencer sequencer;
+    private final Messenger messenger = Messenger.getMessenger();
 
     private int beat;
 
@@ -38,6 +40,9 @@ public class Bank extends Thread {
     public void run() {
         do {
             beat = beat < bankLength - 1 ? beat + 1 : 0;
+            if (sequencer.pads(bankId)[beat]) {
+                messenger.prepareMessage();
+            }
             if (this.bankId == this.sequencer.activeMemory) {
                 try {
                     for (int pad = 0; pad < bankLength; pad++) {

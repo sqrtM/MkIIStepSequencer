@@ -45,6 +45,13 @@ class DeviceInitializer {
         return getMidiDevice(selectedDeviceInfo);
     }
 
+    MidiDevice selectExternalReceiver(MidiDevice.Info[] allMidiDeviceInfo) throws MidiUnavailableException {
+        System.out.println("Please select a valid, external, MIDI In port from the list above.");
+        MidiDevice.Info selectedDeviceInfo = allMidiDeviceInfo[parseInt(in.nextLine())];
+        System.out.println(selectedDeviceInfo + " selected. Connecting...");
+        return getMidiDevice(selectedDeviceInfo);
+    }
+
     void openMidiDevice(MidiDevice selectedDevice) throws MidiUnavailableException {
 
         if (!(selectedDevice).isOpen()) {
