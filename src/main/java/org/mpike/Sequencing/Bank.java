@@ -1,15 +1,15 @@
 package org.mpike.Sequencing;
 
 import org.mpike.Messenger;
+import org.mpike.PhysicalController;
 import org.mpike.mkii.Color;
-import org.mpike.mkii.MkII;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.SysexMessage;
 
 public class Bank extends Thread {
 
-    private final MkII mkii = MkII.getPhysicalController();
+    private final PhysicalController physCon;
     private final int bankId;
     private final int bankLength;
     private final Sequencer sequencer;
@@ -17,10 +17,11 @@ public class Bank extends Thread {
 
     private int beat;
 
-    public Bank(int bankId, int bankLength, Sequencer sequencer) {
+    public Bank(int bankId, int bankLength, Sequencer sequencer, PhysicalController physCon) {
         this.bankId = bankId;
         this.bankLength = bankLength;
         this.sequencer = sequencer;
+        this.physCon = physCon;
     }
 
     /**
@@ -30,9 +31,9 @@ public class Bank extends Thread {
      * @throws InvalidMidiDataException
      */
     private SysexMessage buildBankSelectionMessage(int bankId) throws InvalidMidiDataException {
-        byte[] outgoingMessage = mkii.DefaultSysexMessage();
-        outgoingMessage[mkii.padColor()] = Color.bankColor();
-        outgoingMessage[mkii.padAddress()] = (byte) (mkii.hexOffset() + sequencer.pads(bankId).length + bankId);
+        byte[] outgoingMessage = physCon.DefaultSysexMessage();
+        outgoingMessage[physCon.padColor()] = Color.bankColor();
+        outgoingMessage[physCon.padAddress()] = (byte) (physCon.hexOffset() + sequencer.pads(bankId).length + bankId);
         return sequencer.constructSysexMessage(outgoingMessage);
     }
 

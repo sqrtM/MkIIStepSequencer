@@ -1,13 +1,14 @@
 package org.mpike.mkii;
 
 import org.mpike.Messenger;
+import org.mpike.PhysicalController;
 
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Receiver;
 import javax.sound.midi.Transmitter;
 
-public class MkII {
+public class MkII implements PhysicalController {
 
     private final byte[] defaultSysexMessage = {
             (byte) 0xF0,
@@ -25,17 +26,7 @@ public class MkII {
     private final int PAD_ADDRESS = 9;
     private final int PAD_COLOR = 10;
 
-    private static final MkII physicalController;
-
-    static {
-        try {
-            physicalController = new MkII();
-        } catch (MidiUnavailableException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private MkII() throws MidiUnavailableException {
+    public MkII() throws MidiUnavailableException {
         DeviceInitializer deviceInitializer = new DeviceInitializer();
         Messenger messenger = Messenger.getMessenger();
 
@@ -58,10 +49,6 @@ public class MkII {
         messenger.setReceiver(deviceInitializer.openDeviceReceiver(externalMidiIn));
 
         System.out.println("all ports configured! Initializing sequencer...");
-    }
-
-    public static MkII getPhysicalController() {
-        return physicalController;
     }
 
     public byte[] DefaultSysexMessage() {

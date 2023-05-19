@@ -1,5 +1,6 @@
 package org.mpike.Sequencing;
 
+import org.mpike.PhysicalController;
 import org.mpike.mkii.Color;
 import org.mpike.mkii.MkII;
 
@@ -10,13 +11,14 @@ public class Sequencer implements Receiver {
     private final int numberOfBanks;
     public int activeMemory = 0;
     private final boolean[][] pads;
-    private final MkII mkii = MkII.getPhysicalController();
+    private final PhysicalController mkii;
 
-    public Sequencer(int[] bankLengths) throws InvalidMidiDataException {
+    public Sequencer(PhysicalController physCon, int[] bankLengths) throws InvalidMidiDataException {
+        this.mkii = physCon;
         this.numberOfBanks = bankLengths.length;
         this.pads = new boolean[numberOfBanks][];
         for (int i = 0; i < numberOfBanks; i++) {
-            (new Bank(i, bankLengths[i], this)).start();
+            (new Bank(i, bankLengths[i], this, physCon)).start();
             this.pads[i] = new boolean[bankLengths[i]];
         }
         clearPads();
@@ -105,6 +107,7 @@ public class Sequencer implements Receiver {
     }
 
     SysexMessage constructSysexMessage(byte[] outgoingMessage) throws InvalidMidiDataException {
+        assert outgoingMessage.length == mkii.DefaultSysexMessage().length;
         SysexMessage msg = new SysexMessage();
         msg.setMessage(outgoingMessage, mkii.DefaultSysexMessage().length);
         return msg;
