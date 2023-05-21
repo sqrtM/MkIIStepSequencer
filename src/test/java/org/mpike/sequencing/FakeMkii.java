@@ -1,6 +1,7 @@
-package org.mpike.Sequencing;
+package org.mpike.sequencing;
 
-import org.mpike.PhysicalController;
+import org.mpike.Messenger;
+import org.mpike.controller.PhysicalController;
 
 import javax.sound.midi.Receiver;
 import javax.sound.midi.Transmitter;
@@ -44,5 +45,10 @@ public class FakeMkii implements PhysicalController {
     @Override
     public Transmitter transmitter() {
         return new FakeTransmitter();
+    }
+
+    @Override
+    public Messenger messenger() {
+        return new Messenger();
     }
 }

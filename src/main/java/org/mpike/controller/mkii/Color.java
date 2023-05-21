@@ -1,4 +1,4 @@
-package org.mpike.mkii;
+package org.mpike.controller.mkii;
 
 public enum Color {
     NONE((byte) 0x00),

@@ -1,4 +1,4 @@
-package org.mpike.mkii;
+package org.mpike.controller.mkii;
 
 import javax.sound.midi.*;
 import java.util.Scanner;

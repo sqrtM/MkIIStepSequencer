@@ -9,14 +9,6 @@ public class Messenger implements Transmitter {
 
     private Receiver receiver;
 
-    private static final Messenger messenger = new Messenger();
-
-    private Messenger() {}
-
-    public static Messenger getMessenger() {
-        return messenger;
-    }
-
     public void prepareMessage() {
         ShortMessage msg = new ShortMessage();
         this.send(msg, -1);

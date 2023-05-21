@@ -1,7 +1,7 @@
-package org.mpike.mkii;
+package org.mpike.controller.mkii;
 
 import org.mpike.Messenger;
-import org.mpike.PhysicalController;
+import org.mpike.controller.PhysicalController;
 
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiUnavailableException;
@@ -10,25 +10,13 @@ import javax.sound.midi.Transmitter;
 
 public class MkII implements PhysicalController {
 
-    private final byte[] defaultSysexMessage = {
-            (byte) 0xF0,
-            0x00, 0x20, 0x6B, 0x7F, 0x42,
-            0x02, 0x00, 0x10, 0x70, 0x14,
-            (byte) 0xF7
-    };
-
     private final Receiver RECEIVER;
     private final Transmitter TRANSMITTER;
-
-    private final int NOTE_OFFSET = 36;
-    private final byte HEX_OFFSET = 0x70; // 112
-
-    private final int PAD_ADDRESS = 9;
-    private final int PAD_COLOR = 10;
+    private final Messenger messenger;
 
     public MkII() throws MidiUnavailableException {
         DeviceInitializer deviceInitializer = new DeviceInitializer();
-        Messenger messenger = Messenger.getMessenger();
+
 
         // get list of all midi ports
         MidiDevice.Info[] allMidiDeviceInfo = deviceInitializer.findMidiDevices();
@@ -46,33 +34,42 @@ public class MkII implements PhysicalController {
         //FINALLY, select the external receiver...
         MidiDevice externalMidiIn = deviceInitializer.selectExternalReceiver(allMidiDeviceInfo);
         deviceInitializer.openMidiDevice(externalMidiIn);
+        messenger = new Messenger();
         messenger.setReceiver(deviceInitializer.openDeviceReceiver(externalMidiIn));
 
         System.out.println("all ports configured! Initializing sequencer...");
     }
 
     public byte[] DefaultSysexMessage() {
-        return defaultSysexMessage;
+        return new byte[]{
+                (byte) 0xF0,
+                0x00, 0x20, 0x6B, 0x7F, 0x42,
+                0x02, 0x00, 0x10, 0x70, 0x14,
+                (byte) 0xF7
+        };
     }
 
     public byte hexOffset() {
-        return HEX_OFFSET;
+        // 112
+        return (byte) 0x70;
     }
 
     public int noteOffset() {
-        return NOTE_OFFSET;
+        return 36;
     }
 
     public int padAddress() {
-        return PAD_ADDRESS;
+        return 9;
     }
 
     public int padColor() {
-        return PAD_COLOR;
+        return 10;
     }
 
     public Receiver receiver() { return RECEIVER; }
 
     public Transmitter transmitter() { return TRANSMITTER; }
+
+    public Messenger messenger() { return messenger; }
 
 }

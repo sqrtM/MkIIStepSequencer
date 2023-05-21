@@ -1,8 +1,8 @@
-package org.mpike.Sequencing;
+package org.mpike.sequencing;
 
-import org.mpike.PhysicalController;
-import org.mpike.mkii.Color;
-import org.mpike.mkii.MkII;
+import org.mpike.controller.PhysicalController;
+import org.mpike.controller.mkii.Color;
+import org.mpike.gui.GUIWindow;
 
 import javax.sound.midi.*;
 
@@ -12,11 +12,13 @@ public class Sequencer implements Receiver {
     public int activeMemory = 0;
     private final boolean[][] pads;
     private final PhysicalController mkii;
+    private final GUIWindow.SequencerGUI gui;
 
-    public Sequencer(PhysicalController physCon, int[] bankLengths) throws InvalidMidiDataException {
+    public Sequencer(PhysicalController physCon, int[] bankLengths, GUIWindow.SequencerGUI gui) throws InvalidMidiDataException {
         this.mkii = physCon;
         this.numberOfBanks = bankLengths.length;
         this.pads = new boolean[numberOfBanks][];
+        this.gui = gui;
         for (int i = 0; i < numberOfBanks; i++) {
             (new Bank(i, bankLengths[i], this, physCon)).start();
             this.pads[i] = new boolean[bankLengths[i]];
@@ -69,6 +71,7 @@ public class Sequencer implements Receiver {
                     throw new RuntimeException(e);
                 }
             }
+            gui.updatePads(pads);
         }
     }
 

@@ -1,4 +1,4 @@
-package org.mpike.Sequencing;
+package org.mpike.sequencing;
 
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.Receiver;

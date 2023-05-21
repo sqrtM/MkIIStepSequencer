@@ -1,8 +1,10 @@
-package org.mpike.Sequencing;
+package org.mpike.sequencing;
 
+import org.mpike.Main;
 import org.mpike.Messenger;
-import org.mpike.PhysicalController;
-import org.mpike.mkii.Color;
+import org.mpike.controller.PhysicalController;
+import org.mpike.controller.mkii.Color;
+import org.mpike.gui.GUIWindow;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.SysexMessage;
@@ -13,7 +15,6 @@ public class Bank extends Thread {
     private final int bankId;
     private final int bankLength;
     private final Sequencer sequencer;
-    private final Messenger messenger = Messenger.getMessenger();
 
     private int beat;
 
@@ -42,7 +43,9 @@ public class Bank extends Thread {
         do {
             beat = beat < bankLength - 1 ? beat + 1 : 0;
             if (sequencer.pads(bankId)[beat]) {
-                messenger.prepareMessage();
+                try (Messenger messenger = physCon.messenger()) {
+                    messenger.prepareMessage();
+                }
             }
             if (this.bankId == this.sequencer.activeMemory) {
                 try {
@@ -55,6 +58,7 @@ public class Bank extends Thread {
                 } catch (InvalidMidiDataException e) {
                     throw new RuntimeException(e);
                 }
+
             }
             try {
                 sleep(300L * (bankId + 1));
