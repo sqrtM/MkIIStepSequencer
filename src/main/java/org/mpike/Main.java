@@ -1,11 +1,12 @@
 package org.mpike;
 
 import com.formdev.flatlaf.intellijthemes.FlatArcDarkIJTheme;
+import org.mpike.controller.mkii.MkII;
 import org.mpike.gui.GUIWindow;
 import org.mpike.sequencing.Sequencer;
-import org.mpike.controller.mkii.MkII;
 
-import javax.sound.midi.*;
+import javax.sound.midi.InvalidMidiDataException;
+import javax.sound.midi.MidiUnavailableException;
 
 public class Main {
     public static int[] banksArray = {4, 7, 5, 3, 8, 8, 12, 6};

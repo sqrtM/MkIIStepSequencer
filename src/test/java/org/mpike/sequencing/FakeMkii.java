@@ -9,7 +9,7 @@ import javax.sound.midi.Transmitter;
 public class FakeMkii implements PhysicalController {
     @Override
     public byte[] DefaultSysexMessage() {
-        return new byte[] {
+        return new byte[]{
                 (byte) 0xF0,
                 0x00, 0x20, 0x6B, 0x7F, 0x42,
                 0x02, 0x00, 0x10, 0x70, 0x14,

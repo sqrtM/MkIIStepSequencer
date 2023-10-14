@@ -2,12 +2,21 @@ package org.mpike.gui;
 
 import org.mpike.sequencing.Sequencer;
 
-import java.awt.*;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
 import javax.swing.*;
+import java.awt.*;
 
 public class GUIWindow extends JFrame {
+
+    public void run(SequencerGUI gui) {
+        EventQueue.invokeLater(() -> {
+            JFrame window = new JFrame();
+            window.setTitle("MkII Step Sequencer by mason :)");
+            window.setSize(840, 560);
+            window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            window.add(gui);
+            window.setVisible(true);
+        });
+    }
 
     public static class SequencerGUI extends JPanel {
 
@@ -77,17 +86,6 @@ public class GUIWindow extends JFrame {
                 }
             }
         }
-    }
-
-    public void run(SequencerGUI gui) {
-        EventQueue.invokeLater(() -> {
-            JFrame window = new JFrame();
-            window.setTitle("MkII Step Sequencer by mason :)");
-            window.setSize(840, 560);
-            window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            window.add(gui);
-            window.setVisible(true);
-        });
     }
 
 }

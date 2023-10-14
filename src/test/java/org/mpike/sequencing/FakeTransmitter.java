@@ -7,13 +7,13 @@ public class FakeTransmitter implements Transmitter {
     Receiver receiver = new FakeReceiver();
 
     @Override
-    public void setReceiver(Receiver receiver) {
-        this.receiver = receiver;
+    public Receiver getReceiver() {
+        return this.receiver;
     }
 
     @Override
-    public Receiver getReceiver() {
-        return this.receiver;
+    public void setReceiver(Receiver receiver) {
+        this.receiver = receiver;
     }
 
     @Override

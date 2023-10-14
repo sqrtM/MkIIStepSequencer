@@ -9,11 +9,11 @@ import java.util.Vector;
 public class Sequencer implements Receiver {
 
     private final int numberOfBanks;
-    private int activeMemory = 0;
     private final boolean[][] pads;
     private final PhysicalController mkii;
-    private int[] bankLengths;
-    private Vector<Bank> banks = new Vector<>();
+    private final int[] bankLengths;
+    private final Vector<Bank> banks = new Vector<>();
+    private int activeMemory = 0;
 
     public Sequencer(PhysicalController physCon, int[] bankLengths) {
         this.mkii = physCon;

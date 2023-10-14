@@ -9,6 +9,8 @@ import static javax.sound.midi.MidiSystem.getMidiDevice;
 
 class DeviceInitializer {
 
+    Scanner in = new Scanner(System.in);
+
     MidiDevice.Info[] findMidiDevices() {
 
         Vector<MidiDevice.Info> midiDeviceInfo = new Vector<>();
@@ -20,8 +22,6 @@ class DeviceInitializer {
         }
         return allMidiDeviceInfo;
     }
-
-    Scanner in = new Scanner(System.in);
 
     MidiDevice selectMidiIn(MidiDevice.Info[] allMidiDeviceInfo) throws MidiUnavailableException {
 

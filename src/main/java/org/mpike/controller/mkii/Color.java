@@ -16,10 +16,6 @@ public enum Color {
         this.color = color;
     }
 
-    public byte getColor() {
-        return color;
-    }
-
     public static byte inactiveOffColor() {
         return CYAN.color;
     }
@@ -46,5 +42,9 @@ public enum Color {
 
     public static byte noColor() {
         return NONE.color;
+    }
+
+    public byte getColor() {
+        return color;
     }
 }

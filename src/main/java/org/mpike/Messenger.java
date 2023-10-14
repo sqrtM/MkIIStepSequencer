@@ -19,13 +19,13 @@ public class Messenger implements Transmitter {
     }
 
     @Override
-    public void setReceiver(Receiver receiver) {
-        this.receiver = receiver;
+    public Receiver getReceiver() {
+        return receiver;
     }
 
     @Override
-    public Receiver getReceiver() {
-        return receiver;
+    public void setReceiver(Receiver receiver) {
+        this.receiver = receiver;
     }
 
     @Override
