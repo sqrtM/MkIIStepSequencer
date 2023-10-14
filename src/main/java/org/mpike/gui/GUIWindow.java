@@ -3,85 +3,86 @@ package org.mpike.gui;
 import org.mpike.sequencing.Sequencer;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.*;
 
 public class GUIWindow extends JFrame {
 
     public static class SequencerGUI extends JPanel {
 
-        private final List<PadGraphic[]> fillCells;
-        private boolean[][] padsGUI;
-        private final int columns;
-        private final int rows;
-        private final int rectSize = 40;
+        private final Sequencer sequencer;
+        private final JButton[][] stepButtons;
 
         public SequencerGUI(Sequencer sequencer) {
+            this.sequencer = sequencer;
             int[] bankLengths = sequencer.getBankLengths();
-            this.columns = getNumberOfColumns(bankLengths);
-            this.rows = bankLengths.length + 1;
-            fillCells = new ArrayList<PadGraphic[]>();
-            for (int i = 0; i < rows; i++) {
-                PadGraphic[] row = new PadGraphic[columns];
-                for (int j = 0; j < columns; j++) {
-                    row[j] = new PadGraphic(
-                            (rectSize * j) + rectSize,
-                            (rectSize * i) + rectSize,
-                            rectSize,
-                            Color.cyan);
-                }
-                fillCells.add(row);
-            }
-        }
+            int numRows = bankLengths.length;
+            int numCols = 16;
 
-        // stinky!!!!!!!!!!
-        private int getNumberOfColumns(int[] arr) {
-            Integer[] arrInt = new Integer[arr.length];
-            Arrays.setAll(arrInt, i -> arr[i]);
-            List<Integer> list = Arrays.asList(arrInt);
-            Collections.sort(list);
-            return list.get(arr.length - 1) + 1;
-        }
+            setLayout(new GridLayout(numRows, numCols));
 
-        @Override
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
-            this.getGraphics().setColor(Color.cyan);
-            for (int i = rectSize; i <= columns * rectSize; i += rectSize) {
-                g.drawLine(i, rectSize, i, columns * rectSize);
-            }
+            stepButtons = new JButton[numRows][numCols];
 
-            for (int i = rectSize; i <= rows * rectSize; i += rectSize) {
-                g.drawLine(rectSize, i, rows * columns * rectSize, i);
-            }
-        }
+            for (int row = 0; row < numRows; row++) {
+                for (int col = 0; col < numCols; col++) {
+                    stepButtons[row][col] = new JButton();
+                    Color color = col >= sequencer.pads(row).length ? Color.RED : Color.WHITE;
+                    stepButtons[row][col].setBackground(color);
+                    add(stepButtons[row][col]);
 
-        public void updatePads(boolean[][] pads) {
-            if (!Arrays.deepEquals(this.padsGUI, pads)) {
-                this.padsGUI = pads;
-                for (int i = 0; i < pads.length; i++) {
-                    for (int j = 0; j < pads[i].length; j++) {
-                        if (pads[i][j]) {
-                            fillCells.get(i)[j].color = Color.cyan;
-                        } else {
-                            fillCells.get(i)[j].color = Color.green;
+                    int bankIndex = row;
+                    int padIndex = col;
+                    stepButtons[row][col].addActionListener(e -> {
+                        if (!(padIndex >= sequencer.pads(bankIndex).length)) {
+                            sequencer.updateFromGui(bankIndex, padIndex);
                         }
-                    }
+                    });
                 }
             }
-            repaint();
-            System.out.println(fillCells.toString());
+
+            setVisible(true);
+
+            Thread t = new Thread(() -> {
+                try {
+                    while (true) {
+                        Thread.sleep(100);
+                        updatePads();
+                    }
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            t.start();
         }
 
+        public void updatePads() {
+            int numRows = stepButtons.length;
+
+            for (int row = 0; row < numRows; row++) {
+                int bankLength = sequencer.pads(row).length;
+                int numCols = Math.min(16, bankLength);
+
+                for (int col = 0; col < numCols; col++) {
+                    Color color;
+                    boolean padState = sequencer.pads(row)[col];
+                    int currentBeat = sequencer.getBeatFromBank(row);
+
+                    if (padState) {
+                        color = currentBeat == col ? Color.WHITE : Color.PINK;
+                    } else {
+                        color = currentBeat == col ? Color.GREEN : Color.BLUE;
+                    }
+                    stepButtons[row][col].setBackground(color);
+                }
+            }
+        }
     }
 
-    public void main(SequencerGUI gui) {
+    public void run(SequencerGUI gui) {
         EventQueue.invokeLater(() -> {
             JFrame window = new JFrame();
+            window.setTitle("MkII Step Sequencer by mason :)");
             window.setSize(840, 560);
             window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             window.add(gui);
@@ -90,4 +91,5 @@ public class GUIWindow extends JFrame {
     }
 
 }
+
 

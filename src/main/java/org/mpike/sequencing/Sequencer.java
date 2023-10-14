@@ -4,6 +4,7 @@ import org.mpike.controller.PhysicalController;
 import org.mpike.controller.mkii.Color;
 
 import javax.sound.midi.*;
+import java.util.Vector;
 
 public class Sequencer implements Receiver {
 
@@ -12,6 +13,7 @@ public class Sequencer implements Receiver {
     private final boolean[][] pads;
     private final PhysicalController mkii;
     private int[] bankLengths;
+    private Vector<Bank> banks = new Vector<>();
 
     public Sequencer(PhysicalController physCon, int[] bankLengths) {
         this.mkii = physCon;
@@ -69,8 +71,9 @@ public class Sequencer implements Receiver {
 
     public void start() throws InvalidMidiDataException {
         for (int i = 0; i < numberOfBanks; i++) {
-            (new Bank(i, bankLengths[i], this, this.mkii)).start();
+            this.banks.add(new Bank(i, bankLengths[i], this, this.mkii));
             this.pads[i] = new boolean[bankLengths[i]];
+            this.banks.get(i).start();
         }
         clearPads();
     }
@@ -141,5 +144,13 @@ public class Sequencer implements Receiver {
 
     public boolean[] pads(int padRow) {
         return pads[padRow];
+    }
+
+    public void updateFromGui(int row, int pad) {
+        this.pads[row][pad] = !this.pads[row][pad];
+    }
+
+    public int getBeatFromBank(int bank) {
+        return this.banks.get(bank).getBeat();
     }
 }

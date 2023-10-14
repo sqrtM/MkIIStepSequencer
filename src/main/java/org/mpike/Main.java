@@ -17,13 +17,14 @@ public class Main {
         MkII mkII = new MkII();
 
         try (Sequencer sequencer = new Sequencer(mkII, banksArray)) {
-            FlatArcDarkIJTheme.setup();
-            GUIWindow window = new GUIWindow();
-            GUIWindow.SequencerGUI gui = new GUIWindow.SequencerGUI(sequencer);
-            window.main(gui);
             mkII.transmitter().setReceiver(sequencer);
             System.out.println("Sequencer initialized. Starting.");
             sequencer.start();
+
+            FlatArcDarkIJTheme.setup();
+            GUIWindow window = new GUIWindow();
+            GUIWindow.SequencerGUI gui = new GUIWindow.SequencerGUI(sequencer);
+            window.run(gui);
         }
     }
 }

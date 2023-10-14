@@ -62,4 +62,8 @@ public class Bank extends Thread {
             }
         } while (true);
     }
+
+    public int getBeat() {
+        return beat;
+    }
 }
