@@ -66,10 +66,16 @@ public class MkII implements PhysicalController {
         return 10;
     }
 
-    public Receiver receiver() { return RECEIVER; }
+    public Receiver receiver() {
+        return RECEIVER;
+    }
 
-    public Transmitter transmitter() { return TRANSMITTER; }
+    public Transmitter transmitter() {
+        return TRANSMITTER;
+    }
 
-    public Messenger messenger() { return messenger; }
+    public Messenger messenger() {
+        return messenger;
+    }
 
 }

@@ -2,37 +2,30 @@ package org.mpike.sequencing;
 
 import org.mpike.controller.PhysicalController;
 import org.mpike.controller.mkii.Color;
-import org.mpike.gui.GUIWindow;
 
 import javax.sound.midi.*;
 
 public class Sequencer implements Receiver {
 
     private final int numberOfBanks;
-    public int activeMemory = 0;
+    private int activeMemory = 0;
     private final boolean[][] pads;
     private final PhysicalController mkii;
-    private final GUIWindow.SequencerGUI gui;
+    private int[] bankLengths;
 
-    public Sequencer(PhysicalController physCon, int[] bankLengths, GUIWindow.SequencerGUI gui) throws InvalidMidiDataException {
+    public Sequencer(PhysicalController physCon, int[] bankLengths) {
         this.mkii = physCon;
+        this.bankLengths = bankLengths;
         this.numberOfBanks = bankLengths.length;
         this.pads = new boolean[numberOfBanks][];
-        this.gui = gui;
-        for (int i = 0; i < numberOfBanks; i++) {
-            (new Bank(i, bankLengths[i], this, physCon)).start();
-            this.pads[i] = new boolean[bankLengths[i]];
-        }
-        clearPads();
     }
 
     /**
+     * @param message   the MIDI message to send
+     * @param timeStamp the time-stamp for the message, in microseconds
      * @apiNote This is probably better referred to as "handle," rather than "send".
      * This takes an incoming message, either from the Bank or from the physical
      * controller itself, and sends it DIRECTLY to the controller.
-     *
-     * @param message the MIDI message to send
-     * @param timeStamp the time-stamp for the message, in microseconds
      */
     @Override
     public void send(MidiMessage message, long timeStamp) {
@@ -71,8 +64,15 @@ public class Sequencer implements Receiver {
                     throw new RuntimeException(e);
                 }
             }
-            gui.updatePads(pads);
         }
+    }
+
+    public void start() throws InvalidMidiDataException {
+        for (int i = 0; i < numberOfBanks; i++) {
+            (new Bank(i, bankLengths[i], this, this.mkii)).start();
+            this.pads[i] = new boolean[bankLengths[i]];
+        }
+        clearPads();
     }
 
     private void togglePad(MidiMessage incomingMessage) throws InvalidMidiDataException {
@@ -94,10 +94,10 @@ public class Sequencer implements Receiver {
         for (int i = 0; i < 16; i++) {
             if (i < pads(activeMemory).length) {
                 message[mkii.padColor()] = Color.inactiveOffColor();
-            // is the pad the active memory selector pad?
+                // is the pad the active memory selector pad?
             } else if (pads(activeMemory).length - i == activeMemory) {
                 message[mkii.padColor()] = Color.bankColor();
-            // is the pad outside the selector range?
+                // is the pad outside the selector range?
             } else if (i >= numberOfBanks + pads(activeMemory).length) {
                 message[mkii.padColor()] = Color.inaccessibleBankColor();
             } else {
@@ -125,6 +125,14 @@ public class Sequencer implements Receiver {
         }
         outgoingMessage[mkii.padAddress()] = (byte) (pad + mkii.hexOffset());
         return constructSysexMessage(outgoingMessage);
+    }
+
+    public int getActiveMemory() {
+        return activeMemory;
+    }
+
+    public int[] getBankLengths() {
+        return bankLengths;
     }
 
     @Override

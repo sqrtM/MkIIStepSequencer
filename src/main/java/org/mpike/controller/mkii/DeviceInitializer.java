@@ -9,12 +9,6 @@ import static javax.sound.midi.MidiSystem.getMidiDevice;
 
 class DeviceInitializer {
 
-    void initialize() {
-        // there is a cleaner way to do that Main function;
-        // it's probably something like making an init function
-        // which handles all that stuff.
-    }
-
     MidiDevice.Info[] findMidiDevices() {
 
         Vector<MidiDevice.Info> midiDeviceInfo = new Vector<>();

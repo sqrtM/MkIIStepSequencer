@@ -1,5 +1,7 @@
 package org.mpike.gui;
 
+import org.mpike.sequencing.Sequencer;
+
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,8 +20,8 @@ public class GUIWindow extends JFrame {
         private final int rows;
         private final int rectSize = 40;
 
-        public SequencerGUI(int[] bankLengths) {
-
+        public SequencerGUI(Sequencer sequencer) {
+            int[] bankLengths = sequencer.getBankLengths();
             this.columns = getNumberOfColumns(bankLengths);
             this.rows = bankLengths.length + 1;
             fillCells = new ArrayList<PadGraphic[]>();

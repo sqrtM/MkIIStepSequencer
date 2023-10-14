@@ -1,10 +1,8 @@
 package org.mpike.sequencing;
 
-import org.mpike.Main;
 import org.mpike.Messenger;
 import org.mpike.controller.PhysicalController;
 import org.mpike.controller.mkii.Color;
-import org.mpike.gui.GUIWindow;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.SysexMessage;
@@ -27,9 +25,6 @@ public class Bank extends Thread {
 
     /**
      * I think this function is unnecessary. Can probably be removed.
-     * @param bankId
-     * @return
-     * @throws InvalidMidiDataException
      */
     private SysexMessage buildBankSelectionMessage(int bankId) throws InvalidMidiDataException {
         byte[] outgoingMessage = physCon.DefaultSysexMessage();
@@ -47,7 +42,7 @@ public class Bank extends Thread {
                     messenger.prepareMessage();
                 }
             }
-            if (this.bankId == this.sequencer.activeMemory) {
+            if (this.bankId == this.sequencer.getActiveMemory()) {
                 try {
                     for (int pad = 0; pad < bankLength; pad++) {
                         SysexMessage sequencerColorMessage = sequencer.buildSequencerColorMessage(pad, bankId, beat);
