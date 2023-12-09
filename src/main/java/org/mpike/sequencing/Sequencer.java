@@ -146,9 +146,11 @@ public class Sequencer implements Receiver {
         return pads[padRow];
     }
 
-    public void updateFromGui(int row, int pad) throws InvalidMidiDataException {
-        this.pads[row][pad] = !this.pads[row][pad];
-        this.send(this.buildSequencerColorMessage(pad, row, this.getBeatFromBank(row)), -1);
+    public void updateFromGui(int bank, int pad) throws InvalidMidiDataException {
+        this.pads[bank][pad] = !this.pads[bank][pad];
+        if (bank == activeMemory && pad < getBankLengths()[activeMemory]) {
+            this.send(this.buildSequencerColorMessage(pad, bank, this.getBeatFromBank(bank)), -1);
+        }
     }
 
     public int getBeatFromBank(int bank) {
