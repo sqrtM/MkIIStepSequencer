@@ -8,16 +8,15 @@ import java.util.Vector;
 
 public class Sequencer implements Receiver {
 
-    private final int numberOfBanks;
     private final PhysicalController mkii;
-    private final int[] bankLengths;
     private final Vector<Bank> banks = new Vector<>();
     private int activeMemory = 0;
 
     public Sequencer(PhysicalController physCon, int[] bankLengths) {
         this.mkii = physCon;
-        this.bankLengths = bankLengths;
-        this.numberOfBanks = bankLengths.length;
+        for (int i = 0; i < bankLengths.length; i++) {
+            this.banks.add(new Bank(i, bankLengths[i], this, this.mkii));
+        }
     }
 
     /**
@@ -29,7 +28,6 @@ public class Sequencer implements Receiver {
      */
     @Override
     public void send(MidiMessage message, long timeStamp) {
-        System.out.println(message);
         // if it comes from the bank ...
         if (message instanceof SysexMessage) {
             // ... then it's already formatted. We just send it.
@@ -41,7 +39,7 @@ public class Sequencer implements Receiver {
             // ... we check if it's a bank switch message...
             if (message.getMessage()[1] >= mkii.noteOffset() + this.banks.get(activeMemory).getPads().size()) {
                 // ... is it out of range?...
-                if (message.getMessage()[1] >= mkii.noteOffset() + numberOfBanks + this.banks.get(activeMemory).getPads().size()) {
+                if (message.getMessage()[1] >= mkii.noteOffset() + this.banks.size() + this.banks.get(activeMemory).getPads().size()) {
                     try {
                         clearPads();
                         System.out.println("outside of range :)");
@@ -69,9 +67,8 @@ public class Sequencer implements Receiver {
     }
 
     public void start() throws InvalidMidiDataException {
-        for (int i = 0; i < numberOfBanks; i++) {
-            this.banks.add(new Bank(i, bankLengths[i], this, this.mkii));
-            this.banks.get(i).start();
+        for (Bank bank : this.banks) {
+            bank.start();
         }
         clearPads();
     }
@@ -88,18 +85,22 @@ public class Sequencer implements Receiver {
         clearPads();
     }
 
-    private void clearPads() throws InvalidMidiDataException {
+    public void clearPads() throws InvalidMidiDataException {
         byte[] message = mkii.DefaultSysexMessage();
         message[mkii.padColor()] = Color.NONE.getColor();
         // start at the end of the active memory array
         for (int i = 0; i < 16; i++) {
             if (i < this.banks.get(activeMemory).getPads().size()) {
-                message[mkii.padColor()] = Color.inactiveOffColor();
-                // is the pad the active memory selector pad?
+                if (this.banks.get(activeMemory).getPads().get(i).getStatus().isOn()) {
+                    message[mkii.padColor()] = this.banks.get(activeMemory).getBeat() == i ? Color.activeOnColor() : Color.inactiveOnColor();
+                } else {
+                    message[mkii.padColor()] = this.banks.get(activeMemory).getBeat() == i ? Color.activeOffColor() : Color.inactiveOffColor();
+                }
             } else if (this.banks.get(activeMemory).getPads().size() - i == activeMemory) {
+                // @todo: there's a weird lag with this, but not the others. Why?
                 message[mkii.padColor()] = Color.bankColor();
                 // is the pad outside the selector range?
-            } else if (i >= numberOfBanks + this.banks.get(activeMemory).getPads().size()) {
+            } else if (i >= this.banks.size() + this.banks.get(activeMemory).getPads().size()) {
                 message[mkii.padColor()] = Color.inaccessibleBankColor();
             } else {
                 message[mkii.padColor()] = Color.noColor();
@@ -108,6 +109,7 @@ public class Sequencer implements Receiver {
             SysexMessage msg = constructSysexMessage(message);
             send(msg, -1);
         }
+
     }
 
     SysexMessage constructSysexMessage(byte[] outgoingMessage) throws InvalidMidiDataException {
@@ -132,7 +134,11 @@ public class Sequencer implements Receiver {
         return activeMemory;
     }
 
-    public int[] getBankLengths() {
+    public Vector<Integer> getBankLengths() {
+        Vector<Integer> bankLengths = new Vector<>();
+        for (Bank bank : this.banks) {
+            bankLengths.add(bank.getPads().size());
+        }
         return bankLengths;
     }
 
@@ -150,7 +156,7 @@ public class Sequencer implements Receiver {
 
     public void updateFromGui(int bank, int pad) throws InvalidMidiDataException {
         this.banks.get(bank).getPads().get(pad).toggleStatus();
-        if (bank == activeMemory && pad < getBankLengths()[activeMemory]) {
+        if (bank == activeMemory && pad < getBankLengths().get(activeMemory)) {
             this.send(this.buildSequencerColorMessage(pad, bank, this.getBeatFromBank(bank)), -1);
         }
     }

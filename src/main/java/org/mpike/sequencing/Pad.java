@@ -1,7 +1,5 @@
 package org.mpike.sequencing;
 
-import org.mpike.controller.PhysicalController;
-
 public class Pad {
     private PadStatus status = PadStatus.OFF;
 

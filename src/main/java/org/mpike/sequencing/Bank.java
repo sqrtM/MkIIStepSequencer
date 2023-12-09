@@ -12,15 +12,12 @@ public class Bank extends Thread {
 
     private final PhysicalController physCon;
     private final int bankId;
-    private final int bankLength;
     private final Sequencer sequencer;
     private final Vector<Pad> pads = new Vector<>();
-
     private int beat;
 
     public Bank(int bankId, int bankLength, Sequencer sequencer, PhysicalController physCon) {
         this.bankId = bankId;
-        this.bankLength = bankLength;
         this.sequencer = sequencer;
         this.physCon = physCon;
         for (int i = 0; i < bankLength; i++) {
@@ -41,7 +38,7 @@ public class Bank extends Thread {
     @Override
     public void run() {
         do {
-            beat = beat < bankLength - 1 ? beat + 1 : 0;
+            beat = beat < this.getPads().size() - 1 ? beat + 1 : 0;
             if (this.pads.get(beat).getStatus().isOn()) {
                 try (Messenger messenger = physCon.messenger()) {
                     messenger.prepareMessage();
@@ -49,7 +46,7 @@ public class Bank extends Thread {
             }
             if (this.bankId == this.sequencer.getActiveMemory()) {
                 try {
-                    for (int pad = 0; pad < bankLength; pad++) {
+                    for (int pad = 0; pad < this.getPads().size(); pad++) {
                         SysexMessage sequencerColorMessage = sequencer.buildSequencerColorMessage(pad, bankId, beat);
                         sequencer.send(sequencerColorMessage, -1);
                     }
@@ -74,5 +71,13 @@ public class Bank extends Thread {
 
     public Vector<Pad> getPads() {
         return pads;
+    }
+
+    public void addPad() {
+        this.pads.add(new Pad());
+    }
+
+    public void removePad() {
+        this.pads.removeElementAt(this.pads.size() - 1);
     }
 }
