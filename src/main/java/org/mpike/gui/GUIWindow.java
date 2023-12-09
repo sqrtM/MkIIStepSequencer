@@ -1,5 +1,6 @@
 package org.mpike.gui;
 
+import org.mpike.sequencing.Bank;
 import org.mpike.sequencing.Sequencer;
 
 import javax.sound.midi.InvalidMidiDataException;
@@ -7,6 +8,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.Vector;
 
 public class GUIWindow extends JFrame {
@@ -62,47 +64,22 @@ public class GUIWindow extends JFrame {
     public static class SequencerGUI extends JPanel {
 
         private final Sequencer sequencer;
-        private final JButton[][] stepButtons;
+        private final ArrayList<ArrayList<JButton>> stepButtons;
 
         public SequencerGUI(Sequencer sequencer) {
             this.sequencer = sequencer;
             Vector<Integer> bankLengths = sequencer.getBankLengths();
             int numRows = bankLengths.size();
-            int numCols = 16;
+            int numCols = this.sequencer.getTotalPadsPerRow();
 
             setLayout(new GridLayout(numRows, numCols));
 
-            stepButtons = new JButton[numRows][numCols];
+            stepButtons = new ArrayList<>();
 
             for (int row = 0; row < numRows; row++) {
+                stepButtons.add(new ArrayList<>());
                 for (int col = 0; col < numCols; col++) {
-                    stepButtons[row][col] = new JButton();
-                    Color color = col >= sequencer.getBank(row).getPads().size() ? Color.RED : Color.WHITE;
-                    stepButtons[row][col].setBackground(color);
-                    add(stepButtons[row][col]);
-
-                    int bankIndex = row;
-                    int padIndex = col;
-
-                    // Left Click
-                    stepButtons[row][col].addActionListener(e -> {
-                        if (!(padIndex >= sequencer.getBank(bankIndex).getPads().size())) {
-                            try {
-                                sequencer.updateFromGui(bankIndex, padIndex);
-                            } catch (InvalidMidiDataException ex) {
-                                throw new RuntimeException(ex);
-                            }
-                        }
-                    });
-                    // Right Click
-                    stepButtons[row][col].addMouseListener(new MouseAdapter() {
-                        @Override
-                        public void mouseClicked(MouseEvent e) {
-                            if (SwingUtilities.isRightMouseButton(e)) {
-                                showPopupMenu(e.getComponent(), bankIndex, padIndex);
-                            }
-                        }
-                    });
+                    initNewButton(row, col);
                 }
             }
 
@@ -119,6 +96,33 @@ public class GUIWindow extends JFrame {
                 }
             });
             t.start();
+        }
+
+        private void initNewButton(int row, int col) {
+            stepButtons.get(row).add(new JButton());
+            Color color = col >= sequencer.getBank(row).getPads().size() ? Color.RED : Color.WHITE;
+            stepButtons.get(row).get(col).setBackground(color);
+            add(stepButtons.get(row).get(col));
+
+            // Left Click
+            stepButtons.get(row).get(col).addActionListener(e -> {
+                if (!(col >= sequencer.getBank(row).getPads().size())) {
+                    try {
+                        sequencer.updateFromGui(row, col);
+                    } catch (InvalidMidiDataException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+            });
+            // Right Click
+            stepButtons.get(row).get(col).addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    if (SwingUtilities.isRightMouseButton(e)) {
+                        showPopupMenu(e.getComponent(), row, col);
+                    }
+                }
+            });
         }
 
         private void showPopupMenu(Component invoker, int bankIndex, int padIndex) {
@@ -192,7 +196,7 @@ public class GUIWindow extends JFrame {
         private void removePadsFromBank(int bankIndex, int padsToRemove) throws InvalidMidiDataException {
             for (int i = 0; i < padsToRemove; i++) {
                 this.sequencer.getBank(bankIndex).removePad();
-                stepButtons[bankIndex][sequencer.getBank(bankIndex).getPads().size()].setBackground(Color.RED);
+                stepButtons.get(bankIndex).get(sequencer.getBank(bankIndex).getPads().size()).setBackground(Color.RED);
             }
             this.sequencer.clearPads();
         }
@@ -209,8 +213,18 @@ public class GUIWindow extends JFrame {
             System.out.println("Modify Sequencer General Settings");
         }
 
-        public void addBank(int index) {
-            System.out.println("Add Bank " + index);
+        public void addBank(int banksToAdd) {
+            for (int i = 0; i < banksToAdd; i++) {
+                Bank bank = this.sequencer.addNewBank();
+                this.stepButtons.add(new ArrayList<>());
+                for (int j = 0; j < this.sequencer.getTotalPadsPerRow(); j++) {
+                    this.initNewButton(this.stepButtons.size() - 1, j);
+                }
+                bank.start();
+            }
+            setLayout(new GridLayout(this.stepButtons.size(), this.sequencer.getTotalPadsPerRow()));
+            revalidate();
+            repaint();
         }
 
         public void removeBank(int index) {
@@ -218,7 +232,7 @@ public class GUIWindow extends JFrame {
         }
 
         public void updatePads() {
-            for (int row = 0; row < stepButtons.length; row++) {
+            for (int row = 0; row < stepButtons.size(); row++) {
                 int bankLength = sequencer.getBank(row).getPads().size();
                 int numCols = Math.min(16, bankLength);
 
@@ -232,7 +246,7 @@ public class GUIWindow extends JFrame {
                     } else {
                         color = currentBeat == col ? Color.GREEN : Color.BLUE;
                     }
-                    stepButtons[row][col].setBackground(color);
+                    stepButtons.get(row).get(col).setBackground(color);
                 }
             }
         }

@@ -16,6 +16,9 @@ public interface PhysicalController {
 
     int padColor();
 
+    int padsPerRow();
+    int totalRows();
+
     Receiver receiver();
 
     Transmitter transmitter();

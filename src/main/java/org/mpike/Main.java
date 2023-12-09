@@ -15,7 +15,7 @@ public class Main {
         // but this is being developed with extensibility in mind...
         MkII mkII = new MkII();
 
-        try (Sequencer sequencer = new Sequencer(mkII, new int[]{4, 7, 5, 3, 8, 8, 12, 6})) {
+        try (Sequencer sequencer = new Sequencer(mkII, new int[]{8, 8, 8, 8, 8, 8, 8, 8})) {
             mkII.transmitter().setReceiver(sequencer);
             System.out.println("Sequencer initialized. Starting.");
             sequencer.start();

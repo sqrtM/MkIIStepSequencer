@@ -66,6 +66,14 @@ public class MkII implements PhysicalController {
         return 10;
     }
 
+    public int padsPerRow() {
+        return 16;
+    }
+
+    public int totalRows() {
+        return 16;
+    }
+
     public Receiver receiver() {
         return RECEIVER;
     }

@@ -164,4 +164,18 @@ public class Sequencer implements Receiver {
     public int getBeatFromBank(int bank) {
         return this.banks.get(bank).getBeat();
     }
+
+    public int getControllerPadRows() {
+        return this.mkii.totalRows();
+    }
+
+    public int getTotalPadsPerRow() {
+        return this.mkii.padsPerRow();
+    }
+
+    public Bank addNewBank() {
+        Bank newBank = new Bank(this.banks.size(), 8, this, mkii);
+        this.banks.add(newBank);
+        return newBank;
+    }
 }
