@@ -2,6 +2,7 @@ package org.mpike.gui;
 
 import org.mpike.sequencing.Sequencer;
 
+import javax.sound.midi.InvalidMidiDataException;
 import javax.swing.*;
 import java.awt.*;
 
@@ -44,7 +45,11 @@ public class GUIWindow extends JFrame {
                     int padIndex = col;
                     stepButtons[row][col].addActionListener(e -> {
                         if (!(padIndex >= sequencer.pads(bankIndex).length)) {
-                            sequencer.updateFromGui(bankIndex, padIndex);
+                            try {
+                                sequencer.updateFromGui(bankIndex, padIndex);
+                            } catch (InvalidMidiDataException ex) {
+                                throw new RuntimeException(ex);
+                            }
                         }
                     });
                 }
