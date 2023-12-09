@@ -6,6 +6,7 @@ import org.mpike.controller.mkii.Color;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.SysexMessage;
+import java.util.Vector;
 
 public class Bank extends Thread {
 
@@ -13,6 +14,7 @@ public class Bank extends Thread {
     private final int bankId;
     private final int bankLength;
     private final Sequencer sequencer;
+    private final Vector<Pad> pads = new Vector<>();
 
     private int beat;
 
@@ -21,6 +23,9 @@ public class Bank extends Thread {
         this.bankLength = bankLength;
         this.sequencer = sequencer;
         this.physCon = physCon;
+        for (int i = 0; i < bankLength; i++) {
+            pads.add(new Pad());
+        }
     }
 
     /**
@@ -29,7 +34,7 @@ public class Bank extends Thread {
     private SysexMessage buildBankSelectionMessage(int bankId) throws InvalidMidiDataException {
         byte[] outgoingMessage = physCon.DefaultSysexMessage();
         outgoingMessage[physCon.padColor()] = Color.bankColor();
-        outgoingMessage[physCon.padAddress()] = (byte) (physCon.hexOffset() + sequencer.pads(bankId).length + bankId);
+        outgoingMessage[physCon.padAddress()] = (byte) (physCon.hexOffset() + this.pads.size() + bankId);
         return sequencer.constructSysexMessage(outgoingMessage);
     }
 
@@ -37,7 +42,7 @@ public class Bank extends Thread {
     public void run() {
         do {
             beat = beat < bankLength - 1 ? beat + 1 : 0;
-            if (sequencer.pads(bankId)[beat]) {
+            if (this.pads.get(beat).getStatus().isOn()) {
                 try (Messenger messenger = physCon.messenger()) {
                     messenger.prepareMessage();
                 }
@@ -65,5 +70,9 @@ public class Bank extends Thread {
 
     public int getBeat() {
         return beat;
+    }
+
+    public Vector<Pad> getPads() {
+        return pads;
     }
 }

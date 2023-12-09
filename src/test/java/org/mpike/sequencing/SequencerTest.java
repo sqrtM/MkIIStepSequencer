@@ -48,7 +48,7 @@ class SequencerTest {
     @org.junit.jupiter.api.Test
     void pads() {
         for (int i = 0; i < sequencer.getBankLengths().length; i++) {
-            assert (sequencer.pads(i).length == randomBankLengths[i]);
+            assert (sequencer.pads(i).size() == randomBankLengths[i]);
         }
     }
 }
