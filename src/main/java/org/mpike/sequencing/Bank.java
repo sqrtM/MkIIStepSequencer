@@ -12,6 +12,7 @@ public class Bank extends Thread {
     private final Sequencer sequencer;
     private final Vector<Pad> pads = new Vector<>();
     private int beat;
+    private boolean running = true;
 
     public Bank(int bankId, int bankLength, Sequencer sequencer) {
         this.bankId = bankId;
@@ -23,7 +24,7 @@ public class Bank extends Thread {
 
     @Override
     public void run() {
-        do {
+        while (running) {
             beat = beat < this.getPads().size() - 1 ? beat + 1 : 0;
             if (this.pads.get(beat).getStatus().isOn()) {
                 try (Messenger messenger = this.sequencer.getMessenger()) {
@@ -65,5 +66,9 @@ public class Bank extends Thread {
 
     public void removePad() {
         this.pads.removeElementAt(this.pads.size() - 1);
+    }
+
+    public void kill() {
+        this.running = false;
     }
 }

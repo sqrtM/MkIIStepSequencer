@@ -260,13 +260,22 @@ public class GUIWindow extends JFrame {
             repaint();
         }
 
+        public void removeBank(int banksToRemove) {
+            for (int i = 0; i < banksToRemove; i++) {
+                ArrayList<JButton> buttonsToRemove = this.stepButtons.remove(this.stepButtons.size() - 1);
+                for (JButton button : buttonsToRemove) {
+                    this.remove(button);
+                }
+                this.sequencer.removeBank();
+            }
+            setLayout(new GridLayout(this.stepButtons.size(), 16));
+            revalidate();
+            repaint();
+        }
+
         public void changeColor(ColorType colorType, Color color) {
             this.sequencer.setColor(colorType, color);
             updatePads();
-        }
-
-        public void removeBank(int index) {
-            System.out.println("Remove Bank " + index);
         }
 
         public void updatePads() {

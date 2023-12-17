@@ -188,4 +188,9 @@ public class Sequencer implements Receiver {
         this.banks.add(newBank);
         return newBank;
     }
+
+    public void removeBank() {
+        this.getBank(this.banks.size() - 1).kill();
+        this.banks.remove(this.banks.size() - 1);
+    }
 }
