@@ -2,6 +2,8 @@ package org.mpike.sequencing;
 
 import org.mpike.Messenger;
 import org.mpike.controller.PhysicalController;
+import org.mpike.controller.mkii.Color;
+import org.mpike.controller.mkii.ColorType;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.Receiver;
@@ -70,5 +72,14 @@ public class FakeMkii implements PhysicalController {
     @Override
     public Messenger messenger() {
         return new Messenger();
+    }
+
+    @Override
+    public void setColor(ColorType colorType, Color color) {
+    }
+
+    @Override
+    public Color getColor(ColorType colorType) {
+        return null;
     }
 }

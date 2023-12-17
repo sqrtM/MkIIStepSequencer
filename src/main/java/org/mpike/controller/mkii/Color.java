@@ -47,4 +47,17 @@ public enum Color {
     public byte getColor() {
         return color;
     }
+
+    public java.awt.Color toAwtColor() {
+        return switch (this) {
+            case NONE -> java.awt.Color.BLACK;
+            case RED -> java.awt.Color.RED;
+            case GREEN -> java.awt.Color.GREEN;
+            case YELLOW -> java.awt.Color.YELLOW;
+            case BLUE -> java.awt.Color.BLUE;
+            case CYAN -> java.awt.Color.CYAN;
+            case PURPLE -> java.awt.Color.MAGENTA;
+            case WHITE -> java.awt.Color.WHITE;
+        };
+    }
 }

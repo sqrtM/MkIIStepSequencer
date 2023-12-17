@@ -1,5 +1,7 @@
 package org.mpike.gui;
 
+import org.mpike.controller.mkii.Color;
+import org.mpike.controller.mkii.ColorType;
 import org.mpike.sequencing.Bank;
 import org.mpike.sequencing.Sequencer;
 
@@ -33,6 +35,42 @@ public class GUIWindow extends JFrame {
         exitMenuItem.addActionListener(e -> System.exit(0));
         fileMenu.add(exitMenuItem);
 
+        JMenu banksMenu = buildBanksMenu(gui);
+        JMenu colorsMenu = buildColorsMenu(gui);
+
+        menuBar.add(fileMenu);
+        menuBar.add(banksMenu);
+        menuBar.add(colorsMenu);
+
+        return menuBar;
+    }
+
+    private JMenu buildColorsMenu(SequencerGUI gui) {
+        JMenu colorsMenu = new JMenu("Colors");
+
+        for (ColorType colorType : ColorType.values()) {
+            JMenu colorSubMenu = new JMenu(colorType.toString());
+            for (Color color : Color.values()) {
+                JMenuItem colorItem = new JCheckBoxMenuItem(color.toString());
+                colorItem.addActionListener(e -> {
+                    gui.changeColor(colorType, color);
+                    for (Component component : colorSubMenu.getMenuComponents()) {
+                        ((JCheckBoxMenuItem) component).setState(false);
+                    }
+                    ((JCheckBoxMenuItem) e.getSource()).setState(true);
+                });
+                colorSubMenu.add(colorItem);
+                // auto check the default option
+                if (color == gui.sequencer.getColor(colorType)) {
+                    colorItem.setSelected(true);
+                }
+            }
+            colorsMenu.add(colorSubMenu);
+        }
+        return colorsMenu;
+    }
+
+    private JMenu buildBanksMenu(SequencerGUI gui) {
         JMenu banksMenu = new JMenu("Banks");
 
         JMenu addMenu = new JMenu("Add");
@@ -53,16 +91,11 @@ public class GUIWindow extends JFrame {
 
         banksMenu.add(addMenu);
         banksMenu.add(removeMenu);
-
-        menuBar.add(fileMenu);
-        menuBar.add(banksMenu);
-
-        return menuBar;
+        return banksMenu;
     }
 
 
     public static class SequencerGUI extends JPanel {
-
         private final Sequencer sequencer;
         private final ArrayList<ArrayList<JButton>> stepButtons;
 
@@ -100,8 +133,8 @@ public class GUIWindow extends JFrame {
 
         private void initNewButton(int row, int col) {
             stepButtons.get(row).add(new JButton());
-            Color color = col >= sequencer.getBank(row).getPads().size() ? Color.RED : Color.WHITE;
-            stepButtons.get(row).get(col).setBackground(color);
+            Color color = col >= sequencer.getBank(row).getPads().size() ? sequencer.getColor(ColorType.INACCESSIBLE) : Color.WHITE;
+            stepButtons.get(row).get(col).setBackground(color.toAwtColor());
             add(stepButtons.get(row).get(col));
 
             // Left Click
@@ -196,7 +229,7 @@ public class GUIWindow extends JFrame {
         private void removePadsFromBank(int bankIndex, int padsToRemove) throws InvalidMidiDataException {
             for (int i = 0; i < padsToRemove; i++) {
                 this.sequencer.getBank(bankIndex).removePad();
-                stepButtons.get(bankIndex).get(sequencer.getBank(bankIndex).getPads().size()).setBackground(Color.RED);
+                stepButtons.get(bankIndex).get(sequencer.getBank(bankIndex).getPads().size()).setBackground(sequencer.getColor(ColorType.INACCESSIBLE).toAwtColor());
             }
             this.sequencer.clearPads();
         }
@@ -227,6 +260,11 @@ public class GUIWindow extends JFrame {
             repaint();
         }
 
+        public void changeColor(ColorType colorType, Color color) {
+            this.sequencer.setColor(colorType, color);
+            updatePads();
+        }
+
         public void removeBank(int index) {
             System.out.println("Remove Bank " + index);
         }
@@ -234,19 +272,23 @@ public class GUIWindow extends JFrame {
         public void updatePads() {
             for (int row = 0; row < stepButtons.size(); row++) {
                 int bankLength = sequencer.getBank(row).getPads().size();
-                int numCols = Math.min(16, bankLength);
+                int numCols = Math.min(sequencer.getTotalPadsPerRow(), bankLength);
 
-                for (int col = 0; col < numCols; col++) {
+                for (int col = 0; col < sequencer.getTotalPadsPerRow(); col++) {
                     Color color;
-                    boolean padState = sequencer.getBank(row).getPads().get(col).getStatus().isOn();
-                    int currentBeat = sequencer.getBeatFromBank(row);
+                    if (col < numCols) {
+                        boolean padState = sequencer.getBank(row).getPads().get(col).getStatus().isOn();
+                        int currentBeat = sequencer.getBeatFromBank(row);
 
-                    if (padState) {
-                        color = currentBeat == col ? Color.WHITE : Color.PINK;
+                        if (padState) {
+                            color = currentBeat == col ? sequencer.getColor(ColorType.ACTIVE_ON) : sequencer.getColor(ColorType.INACTIVE_ON);
+                        } else {
+                            color = currentBeat == col ? sequencer.getColor(ColorType.ACTIVE_OFF) : sequencer.getColor(ColorType.INACTIVE_OFF);
+                        }
+                        stepButtons.get(row).get(col).setBackground(color.toAwtColor());
                     } else {
-                        color = currentBeat == col ? Color.GREEN : Color.BLUE;
+                        stepButtons.get(row).get(col).setBackground(sequencer.getColor(ColorType.INACCESSIBLE).toAwtColor());
                     }
-                    stepButtons.get(row).get(col).setBackground(color);
                 }
             }
         }

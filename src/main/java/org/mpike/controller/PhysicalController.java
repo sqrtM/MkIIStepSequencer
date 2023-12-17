@@ -1,6 +1,8 @@
 package org.mpike.controller;
 
 import org.mpike.Messenger;
+import org.mpike.controller.mkii.Color;
+import org.mpike.controller.mkii.ColorType;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.Receiver;
@@ -28,4 +30,6 @@ public interface PhysicalController {
     Transmitter transmitter();
 
     Messenger messenger();
+    void setColor(ColorType colorType, Color color);
+    Color getColor(ColorType colorType);
 }

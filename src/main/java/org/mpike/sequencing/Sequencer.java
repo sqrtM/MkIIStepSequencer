@@ -3,6 +3,7 @@ package org.mpike.sequencing;
 import org.mpike.Messenger;
 import org.mpike.controller.PhysicalController;
 import org.mpike.controller.mkii.Color;
+import org.mpike.controller.mkii.ColorType;
 
 import javax.sound.midi.*;
 import java.util.Vector;
@@ -93,18 +94,18 @@ public class Sequencer implements Receiver {
         for (int i = 0; i < 16; i++) {
             if (i < this.banks.get(activeMemory).getPads().size()) {
                 if (this.banks.get(activeMemory).getPads().get(i).getStatus().isOn()) {
-                    message[mkii.padColor()] = this.banks.get(activeMemory).getBeat() == i ? Color.activeOnColor() : Color.inactiveOnColor();
+                    message[mkii.padColor()] = this.banks.get(activeMemory).getBeat() == i ? mkii.getColor(ColorType.ACTIVE_ON).getColor() : mkii.getColor(ColorType.INACTIVE_ON).getColor();
                 } else {
-                    message[mkii.padColor()] = this.banks.get(activeMemory).getBeat() == i ? Color.activeOffColor() : Color.inactiveOffColor();
+                    message[mkii.padColor()] = this.banks.get(activeMemory).getBeat() == i ? mkii.getColor(ColorType.ACTIVE_OFF).getColor() : mkii.getColor(ColorType.INACTIVE_OFF).getColor();
                 }
             } else if (this.banks.get(activeMemory).getPads().size() - i == activeMemory) {
                 // @todo: there's a weird lag with this, but not the others. Why?
-                message[mkii.padColor()] = Color.bankColor();
+                message[mkii.padColor()] = mkii.getColor(ColorType.BANK).getColor();
                 // is the pad outside the selector range?
             } else if (i >= this.banks.size() + this.banks.get(activeMemory).getPads().size()) {
-                message[mkii.padColor()] = Color.inaccessibleBankColor();
+                message[mkii.padColor()] = mkii.getColor(ColorType.INACCESSIBLE).getColor();
             } else {
-                message[mkii.padColor()] = Color.noColor();
+                message[mkii.padColor()] = Color.NONE.getColor();
             }
             message[mkii.padAddress()] = (byte) (i + mkii.hexOffset());
             SysexMessage msg = mkii.constructSysexMessage(message);
@@ -116,9 +117,9 @@ public class Sequencer implements Receiver {
     SysexMessage buildSequencerColorMessage(int pad, int bankId, int beat) throws InvalidMidiDataException {
         byte[] outgoingMessage = mkii.DefaultSysexMessage();
         if (this.banks.get(bankId).getPads().get(pad).getStatus().isOn()) {
-            outgoingMessage[mkii.padColor()] = beat == pad ? Color.activeOnColor() : Color.inactiveOnColor();
+            outgoingMessage[mkii.padColor()] = beat == pad ? mkii.getColor(ColorType.ACTIVE_ON).getColor() : mkii.getColor(ColorType.INACTIVE_ON).getColor();
         } else {
-            outgoingMessage[mkii.padColor()] = beat == pad ? Color.activeOffColor() : Color.inactiveOffColor();
+            outgoingMessage[mkii.padColor()] = beat == pad ? mkii.getColor(ColorType.ACTIVE_OFF).getColor() : mkii.getColor(ColorType.INACTIVE_OFF).getColor();
         }
         outgoingMessage[mkii.padAddress()] = (byte) (pad + mkii.hexOffset());
         return mkii.constructSysexMessage(outgoingMessage);
@@ -126,7 +127,7 @@ public class Sequencer implements Receiver {
 
     SysexMessage buildBankSelectionMessage(int bankId) throws InvalidMidiDataException {
         byte[] outgoingMessage = mkii.DefaultSysexMessage();
-        outgoingMessage[mkii.padColor()] = Color.bankColor();
+        outgoingMessage[mkii.padColor()] = mkii.getColor(ColorType.BANK).getColor();
         outgoingMessage[mkii.padAddress()] = (byte) (mkii.hexOffset() + this.banks.get(bankId).getPads().size() + bankId);
         return mkii.constructSysexMessage(outgoingMessage);
     }
@@ -137,6 +138,14 @@ public class Sequencer implements Receiver {
 
     public Messenger getMessenger() {
         return this.mkii.messenger();
+    }
+
+    public void setColor(ColorType colorType, Color color) {
+        this.mkii.setColor(colorType, color);
+    }
+
+    public Color getColor(ColorType colorType) {
+        return this.mkii.getColor(colorType);
     }
 
     public Vector<Integer> getBankLengths() {
@@ -168,10 +177,6 @@ public class Sequencer implements Receiver {
 
     public int getBeatFromBank(int bank) {
         return this.banks.get(bank).getBeat();
-    }
-
-    public int getControllerPadRows() {
-        return this.mkii.totalPads();
     }
 
     public int getTotalPadsPerRow() {

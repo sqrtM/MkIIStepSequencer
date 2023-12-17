@@ -10,6 +10,12 @@ public class MkII implements PhysicalController {
     private final Receiver RECEIVER;
     private final Transmitter TRANSMITTER;
     private final Messenger messenger;
+    private Color activeOn = Color.WHITE;
+    private Color activeOff = Color.GREEN;
+    private Color inactiveOn = Color.PURPLE;
+    private Color inactiveOff = Color.CYAN;
+    private Color bank = Color.BLUE;
+    private Color inaccessible = Color.RED;
 
     public MkII() throws MidiUnavailableException, InvalidMidiDataException {
         DeviceInitializer deviceInitializer = new DeviceInitializer();
@@ -64,6 +70,29 @@ public class MkII implements PhysicalController {
         return msg;
     }
 
+    public void setColor(ColorType colorType, Color color) {
+        switch (colorType) {
+            case ACTIVE_ON:
+                this.activeOn = color;
+                break;
+            case ACTIVE_OFF:
+                this.activeOff = color;
+                break;
+            case INACTIVE_ON:
+                this.inactiveOn = color;
+                break;
+            case INACTIVE_OFF:
+                this.inactiveOff = color;
+                break;
+            case BANK:
+                this.bank = color;
+                break;
+            case INACCESSIBLE:
+                this.inaccessible = color;
+                break;
+        }
+    }
+
     public byte[] DefaultSysexMessage() {
         return new byte[]{
                 (byte) 0xF0,
@@ -76,6 +105,17 @@ public class MkII implements PhysicalController {
     public byte hexOffset() {
         // 112
         return (byte) 0x70;
+    }
+
+    public Color getColor(ColorType colorType) {
+        return switch (colorType) {
+            case ACTIVE_ON -> this.activeOn;
+            case ACTIVE_OFF -> this.activeOff;
+            case INACTIVE_ON -> this.inactiveOn;
+            case INACTIVE_OFF -> this.inactiveOff;
+            case BANK -> this.bank;
+            case INACCESSIBLE -> this.inaccessible;
+        };
     }
 
     public int noteOffset() {
