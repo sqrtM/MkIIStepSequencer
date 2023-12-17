@@ -1,5 +1,6 @@
 package org.mpike.sequencing;
 
+import org.mpike.Messenger;
 import org.mpike.controller.PhysicalController;
 import org.mpike.controller.mkii.Color;
 
@@ -15,7 +16,7 @@ public class Sequencer implements Receiver {
     public Sequencer(PhysicalController physCon, int[] bankLengths) {
         this.mkii = physCon;
         for (int i = 0; i < bankLengths.length; i++) {
-            this.banks.add(new Bank(i, bankLengths[i], this, this.mkii));
+            this.banks.add(new Bank(i, bankLengths[i], this));
         }
     }
 
@@ -106,17 +107,10 @@ public class Sequencer implements Receiver {
                 message[mkii.padColor()] = Color.noColor();
             }
             message[mkii.padAddress()] = (byte) (i + mkii.hexOffset());
-            SysexMessage msg = constructSysexMessage(message);
+            SysexMessage msg = mkii.constructSysexMessage(message);
             send(msg, -1);
         }
 
-    }
-
-    SysexMessage constructSysexMessage(byte[] outgoingMessage) throws InvalidMidiDataException {
-        assert outgoingMessage.length == mkii.DefaultSysexMessage().length;
-        SysexMessage msg = new SysexMessage();
-        msg.setMessage(outgoingMessage, mkii.DefaultSysexMessage().length);
-        return msg;
     }
 
     SysexMessage buildSequencerColorMessage(int pad, int bankId, int beat) throws InvalidMidiDataException {
@@ -127,11 +121,22 @@ public class Sequencer implements Receiver {
             outgoingMessage[mkii.padColor()] = beat == pad ? Color.activeOffColor() : Color.inactiveOffColor();
         }
         outgoingMessage[mkii.padAddress()] = (byte) (pad + mkii.hexOffset());
-        return constructSysexMessage(outgoingMessage);
+        return mkii.constructSysexMessage(outgoingMessage);
+    }
+
+    SysexMessage buildBankSelectionMessage(int bankId) throws InvalidMidiDataException {
+        byte[] outgoingMessage = mkii.DefaultSysexMessage();
+        outgoingMessage[mkii.padColor()] = Color.bankColor();
+        outgoingMessage[mkii.padAddress()] = (byte) (mkii.hexOffset() + this.banks.get(bankId).getPads().size() + bankId);
+        return mkii.constructSysexMessage(outgoingMessage);
     }
 
     public int getActiveMemory() {
         return activeMemory;
+    }
+
+    public Messenger getMessenger() {
+        return this.mkii.messenger();
     }
 
     public Vector<Integer> getBankLengths() {
@@ -166,7 +171,7 @@ public class Sequencer implements Receiver {
     }
 
     public int getControllerPadRows() {
-        return this.mkii.totalRows();
+        return this.mkii.totalPads();
     }
 
     public int getTotalPadsPerRow() {
@@ -174,7 +179,7 @@ public class Sequencer implements Receiver {
     }
 
     public Bank addNewBank() {
-        Bank newBank = new Bank(this.banks.size(), 8, this, mkii);
+        Bank newBank = new Bank(this.banks.size(), 8, this);
         this.banks.add(newBank);
         return newBank;
     }

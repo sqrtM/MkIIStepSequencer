@@ -3,10 +3,7 @@ package org.mpike.controller.mkii;
 import org.mpike.Messenger;
 import org.mpike.controller.PhysicalController;
 
-import javax.sound.midi.MidiDevice;
-import javax.sound.midi.MidiUnavailableException;
-import javax.sound.midi.Receiver;
-import javax.sound.midi.Transmitter;
+import javax.sound.midi.*;
 
 public class MkII implements PhysicalController {
 
@@ -14,7 +11,7 @@ public class MkII implements PhysicalController {
     private final Transmitter TRANSMITTER;
     private final Messenger messenger;
 
-    public MkII() throws MidiUnavailableException {
+    public MkII() throws MidiUnavailableException, InvalidMidiDataException {
         DeviceInitializer deviceInitializer = new DeviceInitializer();
 
 
@@ -38,6 +35,33 @@ public class MkII implements PhysicalController {
         messenger.setReceiver(deviceInitializer.openDeviceReceiver(externalMidiIn));
 
         System.out.println("all ports configured! Initializing sequencer...");
+        setAllPadsToToggle();
+    }
+
+    private void setAllPadsToToggle() throws InvalidMidiDataException {
+        for (byte i = 0; i < this.totalPads(); i++) {
+            SysexMessage changeModeToNote = constructSysexMessage(new byte[]{
+                    (byte) 0xF0,
+                    0x00, 0x20, 0x6B, 0x7F, 0x42,
+                    0x02, 0x00, 0x01, (byte) (0x70 + i), 0x09,
+                    (byte) 0xF7
+            });
+            SysexMessage changeBehaviorToToggle = constructSysexMessage(new byte[]{
+                    (byte) 0xF0,
+                    0x00, 0x20, 0x6B, 0x7F, 0x42,
+                    0x02, 0x00, 0x06, (byte) (0x70 + i), 0x00,
+                    (byte) 0xF7
+            });
+            this.RECEIVER.send(changeModeToNote, -1);
+            this.RECEIVER.send(changeBehaviorToToggle, -1);
+        }
+    }
+
+    public SysexMessage constructSysexMessage(byte[] outgoingMessage) throws InvalidMidiDataException {
+        assert outgoingMessage.length == this.DefaultSysexMessage().length;
+        SysexMessage msg = new SysexMessage();
+        msg.setMessage(outgoingMessage, this.DefaultSysexMessage().length);
+        return msg;
     }
 
     public byte[] DefaultSysexMessage() {
@@ -70,7 +94,7 @@ public class MkII implements PhysicalController {
         return 16;
     }
 
-    public int totalRows() {
+    public int totalPads() {
         return 16;
     }
 

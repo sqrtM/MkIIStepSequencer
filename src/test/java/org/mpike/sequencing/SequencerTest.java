@@ -24,16 +24,6 @@ class SequencerTest {
     }
 
     @org.junit.jupiter.api.Test
-    void constructSysexMessage() throws InvalidMidiDataException {
-        sequencer.constructSysexMessage(new byte[]{
-                (byte) 0xF0,
-                0x00, 0x20, 0x6B, 0x7F, 0x42,
-                0x02, 0x00, 0x10, 0x70, 0x14,
-                (byte) 0xF7
-        });
-    }
-
-    @org.junit.jupiter.api.Test
     void send() {
         MidiMessage msg = new ShortMessage();
         sequencer.send(msg, -1);
